@@ -2,8 +2,12 @@ package com.openclassrooms.chatopapi.controller;
 
 import com.openclassrooms.chatopapi.dto.*;
 import com.openclassrooms.chatopapi.model.User;
+import com.openclassrooms.chatopapi.model.UserResponse;
 import com.openclassrooms.chatopapi.repository.UserRepository;
 import com.openclassrooms.chatopapi.service.JwtService;
+
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpHeaders;
@@ -32,7 +36,7 @@ public class AuthController {
     }
 
     @PostMapping(path="/register")
-    public ResponseEntity<User> createUser(@RequestBody CreateUserRequest userRequest) {
+    public ResponseEntity<UserResponse> createUser(@RequestBody CreateUserRequest userRequest) {
         if (userRepository.findByEmail(userRequest.email).isPresent()) {
            return ResponseEntity.badRequest().build();
         }
@@ -42,7 +46,7 @@ public class AuthController {
         user.setPassword(passwordEncoder.encode(userRequest.password));
 
         User savedUser = userRepository.save(user);
-        return ResponseEntity.ok(savedUser);
+        return ResponseEntity.ok(UserResponse.from(savedUser));
     }
     
     @PostMapping(path="/login")
@@ -61,19 +65,21 @@ public class AuthController {
     }
     
     @GetMapping(path="/me")
-    public ResponseEntity<User> getAuthenticatedUser(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
+    public ResponseEntity<UserResponse> getAuthenticatedUser(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
     	
         try {
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
                 return ResponseEntity.status(401).build();
             }
             String token = authHeader.substring(7);
-            String email = jwtService.extractEmail(token);
-
-            return userRepository.findByEmail(email)
-                    .map(ResponseEntity::ok)
-                    .orElse(ResponseEntity.notFound().build());
-
+            Integer userId = jwtService.extractId(token);
+            Optional<User> user = userRepository.findById(userId);
+            if(user.isPresent()) {
+            	return ResponseEntity.ok(UserResponse.from(user.get()));
+            }else {
+            	   return ResponseEntity.notFound().build();
+            }
+         
         } catch (JwtException e) {
             return ResponseEntity.status(401).build();
         }

@@ -35,7 +35,7 @@ public class JwtService {
 	    		   .issuer("self")
 	    		   .issuedAt(now)
 	    		   .expiresAt(now.plus(1,ChronoUnit.DAYS))
-	    		   .subject(user.getEmail())
+	    		   .claim("userId", user.getId())
 	    		   .build();
 	       
 	       JwtEncoderParameters jwtEncoderParameters = JwtEncoderParameters.from(JwsHeader.with(MacAlgorithm.HS256).build(), claims);
@@ -46,7 +46,9 @@ public class JwtService {
 	        return jwtDecoder.decode(token);
 	    }
 
-	    public String extractEmail(String token) {
-	        return decodeToken(token).getSubject();
-	    }
+	  public Integer extractId(String token) {
+		  return ((Number) jwtDecoder.decode(token).getClaim("userId")).intValue();
+		}
+
+
 }
