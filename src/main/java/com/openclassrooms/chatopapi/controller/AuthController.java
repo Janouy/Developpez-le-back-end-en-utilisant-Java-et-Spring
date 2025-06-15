@@ -6,6 +6,7 @@ import com.openclassrooms.chatopapi.model.UserResponse;
 import com.openclassrooms.chatopapi.repository.UserRepository;
 import com.openclassrooms.chatopapi.service.JwtService;
 
+import java.util.Collections;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,27 +67,33 @@ public class AuthController {
         			    ConnectUserResponse response = new ConnectUserResponse(token);
         				return ResponseEntity.ok(response);
         			}else {
-        				return ResponseEntity.status(401).build();
+        				return ResponseEntity.status(404).body(Collections.singletonMap("message", "error"));
         			}
         		})
-        		.orElse(ResponseEntity.badRequest().build());
+        		.orElse(ResponseEntity.status(404).body(Collections.singletonMap("message", "error")));
     }
     
     @GetMapping(path="/me")
-    public ResponseEntity<UserResponse> getAuthenticatedUser(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
-    	
+    public ResponseEntity<?> getAuthenticatedUser(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
         try {
-        	Optional<User> user = jwtService.getUserFromAuthHeader(authHeader);
- 
-            if(user.isPresent()) {
-            	return ResponseEntity.ok(UserResponse.fromAuth(user.get()));
-            }else {
-            	   return ResponseEntity.notFound().build();
+            Optional<User> user = jwtService.getUserFromAuthHeader(authHeader);
+
+            if (user.isPresent()) {
+                return ResponseEntity
+                        .ok(UserResponse.from(user.get()));
+            } else {
+                return ResponseEntity
+                        .status(HttpStatus.NOT_FOUND)
+                        .body(Collections.emptyMap());
             }
-         
+
         } catch (JwtException e) {
-            return ResponseEntity.status(401).build();
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(Collections.emptyMap());
         }
     }
+
 
 }

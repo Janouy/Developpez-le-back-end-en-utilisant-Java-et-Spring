@@ -1,5 +1,10 @@
 package com.openclassrooms.chatopapi.model;
 
+import java.time.LocalDateTime;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -7,104 +12,99 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotNull;
 
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
-
-import java.time.LocalDateTime;
-
 @Entity
 public class Rental {
-  @Id
-  @GeneratedValue(strategy=GenerationType.IDENTITY)
-  private Integer id;
-  @NotNull
-  @Column(length = 50, nullable = false) 
-  private String name;
-  @NotNull
-  private Integer surface;
-  @NotNull
-  private Integer price;
-  @NotNull
-  private String picture;
-  @NotNull
-  @Column(columnDefinition = "TEXT")
-  private String description;
-  @NotNull
-  private Integer owner_id;
-  
-  @CreationTimestamp
-  @Column(updatable = false)
-  private LocalDateTime createdAt;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Integer id;
+	@NotNull
+	@Column(length = 50, nullable = false)
+	private String name;
+	@NotNull
+	private Integer surface;
+	@NotNull
+	private Integer price;
+	@NotNull
+	private String picture;
+	@NotNull
+	@Column(columnDefinition = "TEXT")
+	private String description;
+	@NotNull
+	private Integer owner_id;
 
-  @UpdateTimestamp
-  private LocalDateTime updatedAt;
+	@CreationTimestamp
+	@Column(updatable = false)
+	private LocalDateTime createdAt;
 
-  public Integer getId() {
-    return id;
-  }
+	@UpdateTimestamp
+	private LocalDateTime updatedAt;
 
-  public String getName() {
-    return name;
-  }
+	public Integer getId() {
+		return id;
+	}
 
-  public void setName(String name) {
-    this.name = name;
-  }
+	public String getName() {
+		return name;
+	}
 
-  public Integer getSurface() {
-    return surface;
-  }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-  public void setSurface(Integer surface) {
-    this.surface = surface;
-  }
-  
-  public Integer getPrice() {
-	return price;
-  }
+	public Integer getSurface() {
+		return surface;
+	}
 
-  public void setPrice(Integer price) {
-    this.price = price;
-  }
-  public String getPicture() {
-	    return picture;
+	public void setSurface(Integer surface) {
+		this.surface = surface;
+	}
+
+	public Integer getPrice() {
+		return price;
+	}
+
+	public void setPrice(Integer price) {
+		this.price = price;
+	}
+
+	public String getPicture() {
+		return picture;
 	}
 
 	public void setPicture(String picture) {
-	    this.picture = picture;
+		this.picture = picture;
 	}
-  public String getDescription() {
-	return description;
-  }
 
-  public void setDescription(String description) {
-    this.description = description;
-  }
-  
-  public Integer getOwnerId() {
-	return owner_id;
-  }
+	public String getDescription() {
+		return description;
+	}
 
-  public void setOwnerId(Integer owner_id) {
-    this.owner_id = owner_id;
-  }
+	public void setDescription(String description) {
+		this.description = description;
+	}
 
-  public LocalDateTime getCreatedAt() {
-	return createdAt;
-  }
+	public Integer getOwnerId() {
+		return owner_id;
+	}
 
-  public void setCreatedAt(LocalDateTime createdAt) {
-	this.createdAt = createdAt;
-  }
-  public LocalDateTime getUpdatedAt() {
-	return updatedAt;
-  }
+	public void setOwnerId(Integer owner_id) {
+		this.owner_id = owner_id;
+	}
 
-  public void setUpdatedAt(LocalDateTime updatedAt) {
-	this.updatedAt = updatedAt;
-  }
-  
+	public LocalDateTime getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(LocalDateTime createdAt) {
+		this.createdAt = createdAt;
+	}
+
+	public LocalDateTime getUpdatedAt() {
+		return updatedAt;
+	}
+
+	public void setUpdatedAt(LocalDateTime updatedAt) {
+		this.updatedAt = updatedAt;
+	}
+
 }
-
-

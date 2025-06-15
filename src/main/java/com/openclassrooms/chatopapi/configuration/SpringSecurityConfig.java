@@ -2,6 +2,7 @@ package com.openclassrooms.chatopapi.configuration;
 
 import javax.crypto.spec.SecretKeySpec;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -17,7 +18,6 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.beans.factory.annotation.Value;
 
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import com.openclassrooms.chatopapi.service.JwtAuthenticationFilter;
@@ -27,55 +27,41 @@ import com.openclassrooms.chatopapi.service.JwtService;
 @EnableWebSecurity
 public class SpringSecurityConfig {
 
-    @Value("${JWT_KEY}")
-    private String jwtKey;
+	@Value("${JWT_KEY}")
+	private String jwtKey;
 
-    @Bean
-    @Order(1)
-    public SecurityFilterChain publicFilterChain(HttpSecurity http) throws Exception {
-        return http
-          .securityMatchers(m -> m.requestMatchers("/auth/login", "/auth/register"))
-          .cors(Customizer.withDefaults())
-          .csrf(csrf -> csrf.disable())
-          .authorizeHttpRequests(a -> a.anyRequest().permitAll())
-          .build();
-    }
+	@Bean
+	@Order(1)
+	public SecurityFilterChain publicFilterChain(HttpSecurity http) throws Exception {
+		return http.securityMatchers(m -> m.requestMatchers("/auth/login", "/auth/register"))
+				.cors(Customizer.withDefaults()).csrf(csrf -> csrf.disable())
+				.authorizeHttpRequests(a -> a.anyRequest().permitAll()).build();
+	}
 
-    @Bean
-    @Order(2)
-    public SecurityFilterChain protectedFilterChain(HttpSecurity http,
-                                                   JwtService jwtService) throws Exception {
-        return http
-          .securityMatchers(m -> m.requestMatchers("/**"))
-          .cors(Customizer.withDefaults())
-          .csrf(csrf -> csrf.disable())
-          .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-          .addFilterBefore(
-              new JwtAuthenticationFilter(jwtService),
-              UsernamePasswordAuthenticationFilter.class
-          )
-          .authorizeHttpRequests(a -> a.anyRequest().authenticated())
-          .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
-          .build();
-    }
+	@Bean
+	@Order(2)
+	public SecurityFilterChain protectedFilterChain(HttpSecurity http, JwtService jwtService) throws Exception {
+		return http.securityMatchers(m -> m.requestMatchers("/**")).cors(Customizer.withDefaults())
+				.csrf(csrf -> csrf.disable())
+				.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+				.addFilterBefore(new JwtAuthenticationFilter(jwtService), UsernamePasswordAuthenticationFilter.class)
+				.authorizeHttpRequests(a -> a.anyRequest().authenticated())
+				.oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults())).build();
+	}
 
+	@Bean
+	public JwtEncoder jwtEncoder() {
+		return new NimbusJwtEncoder(new ImmutableSecret<>(this.jwtKey.getBytes()));
+	}
 
-    @Bean
-    public JwtEncoder jwtEncoder() {
-        return new NimbusJwtEncoder(new ImmutableSecret<>(this.jwtKey.getBytes()));
-    }
+	@Bean
+	public JwtDecoder jwtDecoder() {
+		SecretKeySpec secretKey = new SecretKeySpec(this.jwtKey.getBytes(), "HmacSHA256");
+		return NimbusJwtDecoder.withSecretKey(secretKey).macAlgorithm(MacAlgorithm.HS256).build();
+	}
 
-    @Bean
-    public JwtDecoder jwtDecoder() {
-        SecretKeySpec secretKey = new SecretKeySpec(this.jwtKey.getBytes(), "HmacSHA256");
-        return NimbusJwtDecoder.withSecretKey(secretKey)
-                               .macAlgorithm(MacAlgorithm.HS256)
-                               .build();
-    }
-
-    @Bean
-    public BCryptPasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+	@Bean
+	public BCryptPasswordEncoder passwordEncoder() {
+		return new BCryptPasswordEncoder();
+	}
 }
-

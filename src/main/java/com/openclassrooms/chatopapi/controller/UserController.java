@@ -27,12 +27,11 @@ public class UserController {
 
   @GetMapping(path="/{id}")
   public ResponseEntity<UserResponse> getAuthenticatedUserById(@RequestHeader(HttpHeaders.AUTHORIZATION)String authHeader, @PathVariable Integer id) {
-     System.out.println("hello");
       try {
         	Optional<User> user = jwtService.getUserFromAuthHeader(authHeader);
 
             if(user.isPresent()) {
-            	return ResponseEntity.ok(UserResponse.fromUser(user.get()));
+            	return ResponseEntity.ok(UserResponse.from(user.get()));
             }else {
             	   return ResponseEntity.notFound().build();
             }
