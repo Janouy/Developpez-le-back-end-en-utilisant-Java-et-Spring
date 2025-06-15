@@ -1,6 +1,5 @@
 package com.openclassrooms.chatopapi.repository;
 
-
 import java.util.Optional;
 
 import org.springframework.data.repository.CrudRepository;

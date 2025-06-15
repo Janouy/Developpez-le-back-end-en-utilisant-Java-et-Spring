@@ -11,6 +11,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.stereotype.Controller;
@@ -36,7 +37,7 @@ public class AuthController {
     }
 
     @PostMapping(path="/register")
-    public ResponseEntity<UserResponse> createUser(@RequestBody CreateUserRequest userRequest) {
+    public ResponseEntity<?> createUser(@RequestBody CreateUserRequest userRequest) {
         if (userRepository.findByEmail(userRequest.email).isPresent()) {
            return ResponseEntity.badRequest().build();
         }
@@ -46,7 +47,14 @@ public class AuthController {
         user.setPassword(passwordEncoder.encode(userRequest.password));
 
         User savedUser = userRepository.save(user);
-        return ResponseEntity.ok(UserResponse.from(savedUser));
+        if (savedUser == null || savedUser.getId() == null) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                 .body("An error has occured");
+        }else {
+	        String token = jwtService.generateToken(user);
+		    ConnectUserResponse response = new ConnectUserResponse(token);
+			return ResponseEntity.ok(response);
+        }
     }
     
     @PostMapping(path="/login")
@@ -68,14 +76,10 @@ public class AuthController {
     public ResponseEntity<UserResponse> getAuthenticatedUser(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
     	
         try {
-            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                return ResponseEntity.status(401).build();
-            }
-            String token = authHeader.substring(7);
-            Integer userId = jwtService.extractId(token);
-            Optional<User> user = userRepository.findById(userId);
+        	Optional<User> user = jwtService.getUserFromAuthHeader(authHeader);
+ 
             if(user.isPresent()) {
-            	return ResponseEntity.ok(UserResponse.from(user.get()));
+            	return ResponseEntity.ok(UserResponse.fromAuth(user.get()));
             }else {
             	   return ResponseEntity.notFound().build();
             }
