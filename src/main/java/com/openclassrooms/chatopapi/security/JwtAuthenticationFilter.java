@@ -1,9 +1,11 @@
-package com.openclassrooms.chatopapi.service;
+package com.openclassrooms.chatopapi.security;
 
 import java.io.IOException;
 
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
+
+import com.openclassrooms.chatopapi.service.JwtService;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

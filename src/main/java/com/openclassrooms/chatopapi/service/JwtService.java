@@ -7,6 +7,10 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.JwsHeader;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -16,83 +20,72 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.stereotype.Service;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.core.GrantedAuthority;
-
 
 import com.openclassrooms.chatopapi.model.User;
 import com.openclassrooms.chatopapi.repository.UserRepository;
 
 @Service
 public class JwtService {
-	
+
 	private JwtEncoder jwtEncoder;
 	private final JwtDecoder jwtDecoder;
-	
+
 	@Autowired
 	private UserRepository userRepository;
-	
-	public JwtService (JwtEncoder jwtEncoder, JwtDecoder jwtDecoder, UserRepository userRepository) {
+
+	public JwtService(JwtEncoder jwtEncoder, JwtDecoder jwtDecoder, UserRepository userRepository) {
 		this.jwtEncoder = jwtEncoder;
 		this.jwtDecoder = jwtDecoder;
 		this.userRepository = userRepository;
 	}
-	
 
 	public String generateToken(User user) {
-	       Instant now = Instant.now();
-	       JwtClaimsSet claims = JwtClaimsSet.builder()
-	    		   .issuer("self")
-	    		   .issuedAt(now)
-	    		   .expiresAt(now.plus(1,ChronoUnit.DAYS))
-	    		   .claim("userId", user.getId())
-	    		   .build();
-	       
-	       JwtEncoderParameters jwtEncoderParameters = JwtEncoderParameters.from(JwsHeader.with(MacAlgorithm.HS256).build(), claims);
-	       return this.jwtEncoder.encode(jwtEncoderParameters).getTokenValue();
+		Instant now = Instant.now();
+		JwtClaimsSet claims = JwtClaimsSet.builder().issuer("self").issuedAt(now)
+				.expiresAt(now.plus(1, ChronoUnit.DAYS)).claim("userId", user.getId()).build();
+
+		JwtEncoderParameters jwtEncoderParameters = JwtEncoderParameters
+				.from(JwsHeader.with(MacAlgorithm.HS256).build(), claims);
+		return this.jwtEncoder.encode(jwtEncoderParameters).getTokenValue();
 	}
-	
+
 	public Jwt decodeToken(String token) {
-	      return jwtDecoder.decode(token);
+		return jwtDecoder.decode(token);
 	}
 
 	public Integer extractId(String token) {
-		  return ((Number) jwtDecoder.decode(token).getClaim("userId")).intValue();
-    }
-	
+		return ((Number) jwtDecoder.decode(token).getClaim("userId")).intValue();
+	}
+
 	public Authentication getAuthentication(String token) {
-	    Jwt jwt = jwtDecoder.decode(token);
-	    Integer userId = ((Number) jwt.getClaim("userId")).intValue();
-	    User user = userRepository.findById(userId)
-	        .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-	    List<GrantedAuthority> authorities = Collections.emptyList();
-	    return new UsernamePasswordAuthenticationToken(user, null, authorities);
+		Jwt jwt = jwtDecoder.decode(token);
+		Integer userId = ((Number) jwt.getClaim("userId")).intValue();
+		User user = userRepository.findById(userId).orElseThrow(() -> new UsernameNotFoundException("User not found"));
+		List<GrantedAuthority> authorities = Collections.emptyList();
+		return new UsernamePasswordAuthenticationToken(user, null, authorities);
 	}
 
-	
 	public Optional<User> getUserFromAuthHeader(String authHeader) {
-	    if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-	        return Optional.empty();
-	    }
-	    try {
-	        String token = authHeader.substring(7);
-	        Integer userId = this.extractId(token); 
-	        return userRepository.findById(userId);
-	    } catch (JwtException | IllegalArgumentException e) {
-	        return Optional.empty();
-	    }
+		if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+			return Optional.empty();
+		}
+		try {
+			String token = authHeader.substring(7);
+			Integer userId = this.extractId(token);
+			return userRepository.findById(userId);
+		} catch (JwtException | IllegalArgumentException e) {
+			return Optional.empty();
+		}
 	}
 
-    public boolean validateToken(String token) {
-        try {
-            Jwt jwt = jwtDecoder.decode(token);
-            Instant expiresAt = jwt.getExpiresAt();
-            return expiresAt != null && Instant.now().isBefore(expiresAt);
-        } catch (JwtException | IllegalArgumentException e) {
-            return false;
-        }
-    }
+	public boolean validateToken(String token) {
+		try {
+			Jwt jwt = jwtDecoder.decode(token);
+			Instant expiresAt = jwt.getExpiresAt();
+			return expiresAt != null && Instant.now().isBefore(expiresAt);
+		} catch (JwtException | IllegalArgumentException e) {
+			return false;
+		}
+	}
 
 }

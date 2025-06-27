@@ -1,5 +1,10 @@
 package com.openclassrooms.chatopapi.model;
 
+import java.time.LocalDateTime;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -7,75 +12,69 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotNull;
 
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
-import java.time.LocalDateTime;
-
 @Entity
 public class User {
-  @Id
-  @GeneratedValue(strategy=GenerationType.IDENTITY)
-  private Integer id;
-  @NotNull
-  @Column(length = 50) 
-  private String name;
-  @NotNull
-  @Column(length = 50) 
-  private String email;
-  @NotNull
-  private String password;
-  
-  @CreationTimestamp
-  @Column(updatable = false)
-  private LocalDateTime createdAt;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
+	@NotNull
+	@Column(length = 50)
+	private String name;
+	@NotNull
+	@Column(length = 50)
+	private String email;
+	@NotNull
+	private String password;
 
-  @UpdateTimestamp
-  private LocalDateTime updatedAt;
+	@CreationTimestamp
+	@Column(updatable = false)
+	private LocalDateTime createdAt;
 
-  public Integer getId() {
-    return id;
-  }
+	@UpdateTimestamp
+	private LocalDateTime updatedAt;
 
-  public String getName() {
-    return name;
-  }
+	public Long getId() {
+		return id;
+	}
 
-  public void setName(String name) {
-    this.name = name;
-  }
+	public String getName() {
+		return name;
+	}
 
-  public String getEmail() {
-    return email;
-  }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-  public void setEmail(String email) {
-    this.email = email;
-  }
-  
-  public String getPassword() {
-	return password;
-  }
+	public String getEmail() {
+		return email;
+	}
 
-  public void setPassword(String password) {
-    this.password = password;
-  }
+	public void setEmail(String email) {
+		this.email = email;
+	}
 
-  public LocalDateTime getCreatedAt() {
-	return createdAt;
-  }
+	public String getPassword() {
+		return password;
+	}
 
-  public void setCreatedAt(LocalDateTime createdAt) {
-	this.createdAt = createdAt;
-  }
-  public LocalDateTime getUpdatedAt() {
-	return updatedAt;
-  }
+	public void setPassword(String password) {
+		this.password = password;
+	}
 
-  public void setUpdatedAt(LocalDateTime updatedAt) {
-	this.updatedAt = updatedAt;
-  }
-  
+	public LocalDateTime getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(LocalDateTime createdAt) {
+		this.createdAt = createdAt;
+	}
+
+	public LocalDateTime getUpdatedAt() {
+		return updatedAt;
+	}
+
+	public void setUpdatedAt(LocalDateTime updatedAt) {
+		this.updatedAt = updatedAt;
+	}
+
 }
-
-

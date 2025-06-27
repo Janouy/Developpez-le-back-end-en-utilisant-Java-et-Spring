@@ -16,7 +16,7 @@ import jakarta.validation.constraints.NotNull;
 public class Rental {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Integer id;
+	private Long id;
 	@NotNull
 	@Column(length = 50, nullable = false)
 	private String name;
@@ -30,7 +30,7 @@ public class Rental {
 	@Column(columnDefinition = "TEXT")
 	private String description;
 	@NotNull
-	private Integer owner_id;
+	private Long owner_id;
 
 	@CreationTimestamp
 	@Column(updatable = false)
@@ -39,7 +39,7 @@ public class Rental {
 	@UpdateTimestamp
 	private LocalDateTime updatedAt;
 
-	public Integer getId() {
+	public Long getId() {
 		return id;
 	}
 
@@ -83,11 +83,11 @@ public class Rental {
 		this.description = description;
 	}
 
-	public Integer getOwnerId() {
+	public Long getOwnerId() {
 		return owner_id;
 	}
 
-	public void setOwnerId(Integer owner_id) {
+	public void setOwnerId(Long owner_id) {
 		this.owner_id = owner_id;
 	}
 

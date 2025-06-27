@@ -20,7 +20,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
-import com.openclassrooms.chatopapi.service.JwtAuthenticationFilter;
+import com.openclassrooms.chatopapi.security.JwtAuthenticationFilter;
+import com.openclassrooms.chatopapi.security.RestAuthenticationEntryPoint;
 import com.openclassrooms.chatopapi.service.JwtService;
 
 @Configuration
@@ -33,30 +34,35 @@ public class SpringSecurityConfig {
 	@Bean
 	@Order(1)
 	public SecurityFilterChain publicFilterChain(HttpSecurity http) throws Exception {
-		return http.securityMatchers(m -> m.requestMatchers("/auth/login", "/auth/register"))
+		return http
+				.securityMatchers(m -> m.requestMatchers("/auth/login", "/auth/register", "/uploads/**",
+						"/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html"))
 				.cors(Customizer.withDefaults()).csrf(csrf -> csrf.disable())
 				.authorizeHttpRequests(a -> a.anyRequest().permitAll()).build();
 	}
 
 	@Bean
 	@Order(2)
-	public SecurityFilterChain protectedFilterChain(HttpSecurity http, JwtService jwtService) throws Exception {
+	public SecurityFilterChain protectedFilterChain(HttpSecurity http, JwtService jwtService,
+			RestAuthenticationEntryPoint entryPoint) throws Exception {
 		return http.securityMatchers(m -> m.requestMatchers("/**")).cors(Customizer.withDefaults())
 				.csrf(csrf -> csrf.disable())
 				.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.addFilterBefore(new JwtAuthenticationFilter(jwtService), UsernamePasswordAuthenticationFilter.class)
-				.authorizeHttpRequests(a -> a.anyRequest().authenticated())
-				.oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults())).build();
+				.exceptionHandling(ex -> ex.authenticationEntryPoint(entryPoint))
+				.authorizeHttpRequests(a -> a.anyRequest().authenticated()).oauth2ResourceServer(
+						oauth2 -> oauth2.authenticationEntryPoint(entryPoint).jwt(Customizer.withDefaults()))
+				.build();
 	}
 
 	@Bean
 	public JwtEncoder jwtEncoder() {
-		return new NimbusJwtEncoder(new ImmutableSecret<>(this.jwtKey.getBytes()));
+		return new NimbusJwtEncoder(new ImmutableSecret<>(jwtKey.getBytes()));
 	}
 
 	@Bean
 	public JwtDecoder jwtDecoder() {
-		SecretKeySpec secretKey = new SecretKeySpec(this.jwtKey.getBytes(), "HmacSHA256");
+		SecretKeySpec secretKey = new SecretKeySpec(jwtKey.getBytes(), "HmacSHA256");
 		return NimbusJwtDecoder.withSecretKey(secretKey).macAlgorithm(MacAlgorithm.HS256).build();
 	}
 
