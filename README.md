@@ -40,6 +40,7 @@ Les tables se créeront automatiquement au lancement du projet
 
 ### Ajouter un .env sous src/main/ressources
 
+- APP_BASE_URL= base de l'url
 - DB_HOST= host de la base de données
 - DB_PORT= port de la base de données
 - DB_NAME= nom de votre base de données
