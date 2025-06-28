@@ -40,12 +40,12 @@ Les tables se créeront automatiquement au lancement du projet
 
 ### Ajouter un .env sous src/main/ressources
 
-DB_HOST= host de la base de données
-DB_PORT= port de la base de données
-DB_NAME= nom de votre base de données
-DB_USER= nom d'utilisateur
-DB_PASSWORD= mot de passe de connexion à la base de données
-JWT_KEY= clé servant à générer un jwt
+- DB_HOST= host de la base de données
+- DB_PORT= port de la base de données
+- DB_NAME= nom de votre base de données
+- DB_USER= nom d'utilisateur
+- DB_PASSWORD= mot de passe de connexion à la base de données
+- JWT_KEY= clé servant à générer un jwt
 
 ---
 
