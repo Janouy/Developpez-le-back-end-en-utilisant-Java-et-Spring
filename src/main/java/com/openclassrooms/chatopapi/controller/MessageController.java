@@ -14,7 +14,7 @@ import com.openclassrooms.chatopapi.dto.CreateMessageRequest;
 import com.openclassrooms.chatopapi.dto.ErrorResponse;
 import com.openclassrooms.chatopapi.dto.Response;
 import com.openclassrooms.chatopapi.model.Message;
-import com.openclassrooms.chatopapi.repository.MessageRepository;
+import com.openclassrooms.chatopapi.service.MessageService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -31,7 +31,7 @@ import jakarta.validation.Valid;
 public class MessageController {
 
 	@Autowired
-	private MessageRepository messageRepository;
+	private MessageService messageService;
 
 	@Operation(summary = "Send a message", description = "Send a message if authentificated", security = {}, requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(mediaType = "application/json", schema = @Schema(implementation = CreateMessageRequest.class))), responses = {
 			@ApiResponse(responseCode = "200", description = "Message send with success", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Response.class), examples = @ExampleObject(value = "{\"message\": \"Message send with success\"}"))),
@@ -42,11 +42,8 @@ public class MessageController {
 	public ResponseEntity<?> createMessage(@Valid @RequestBody CreateMessageRequest messageRequest,
 			BindingResult result) {
 
-		Message message = new Message();
-		message.setMessage(messageRequest.message);
-		message.setUser_id(messageRequest.user_id);
-		message.setRental_id(messageRequest.rental_id);
-		Message savedMessage = messageRepository.save(message);
+		Message message = messageService.buildMessageFromRequest(messageRequest);
+		Message savedMessage = messageService.saveMessage(message);
 		if (savedMessage == null || savedMessage.getId() == null) {
 			ErrorResponse err = new ErrorResponse("An error has occured", 500);
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(err);

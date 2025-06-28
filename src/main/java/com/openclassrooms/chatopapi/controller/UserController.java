@@ -15,7 +15,7 @@ import com.openclassrooms.chatopapi.dto.ConnectUserResponse;
 import com.openclassrooms.chatopapi.dto.ErrorResponse;
 import com.openclassrooms.chatopapi.dto.UserResponse;
 import com.openclassrooms.chatopapi.model.User;
-import com.openclassrooms.chatopapi.repository.UserRepository;
+import com.openclassrooms.chatopapi.service.UserService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -32,7 +32,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class UserController {
 
 	@Autowired
-	private UserRepository userRepository;
+	private UserService userService;
 
 	@Operation(summary = "Get authenticated user by id", description = "Returns the authenticated user's information", security = @SecurityRequirement(name = "bearerAuth"), responses = {
 			@ApiResponse(responseCode = "200", description = "User info", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ConnectUserResponse.class))),
@@ -42,7 +42,7 @@ public class UserController {
 			@ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class), examples = @ExampleObject(value = "An error has occured"))) })
 	@GetMapping(path = "/{id}")
 	public ResponseEntity<?> getAuthenticatedUserById(@PathVariable Integer id) {
-		Optional<User> user = userRepository.findById(id);
+		Optional<User> user = userService.findById(id);
 		if (user.isPresent()) {
 			return ResponseEntity.ok(UserResponse.from(user.get()));
 		} else {

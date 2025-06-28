@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
@@ -22,8 +21,8 @@ import com.openclassrooms.chatopapi.dto.CreateUserRequest;
 import com.openclassrooms.chatopapi.dto.ErrorResponse;
 import com.openclassrooms.chatopapi.dto.UserResponse;
 import com.openclassrooms.chatopapi.model.User;
-import com.openclassrooms.chatopapi.repository.UserRepository;
 import com.openclassrooms.chatopapi.service.JwtService;
+import com.openclassrooms.chatopapi.service.UserService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -42,15 +41,9 @@ import jakarta.validation.Valid;
 public class AuthController {
 
 	@Autowired
-	private UserRepository userRepository;
-	private BCryptPasswordEncoder passwordEncoder;
 	private JwtService jwtService;
-
-	public AuthController(BCryptPasswordEncoder passwordEncoder, JwtService jwtService, UserRepository userRepository) {
-		this.jwtService = jwtService;
-		this.passwordEncoder = passwordEncoder;
-		this.userRepository = userRepository;
-	}
+	@Autowired
+	private UserService userService;
 
 	@Operation(summary = "Register a new user", description = "Creates a new user and returns a JWT token on success.", requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(mediaType = "application/json", schema = @Schema(implementation = CreateUserRequest.class))), responses = {
 			@ApiResponse(responseCode = "200", description = "User registered successfully, returns JWT token", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ConnectUserResponse.class))),
@@ -61,24 +54,21 @@ public class AuthController {
 	@PostMapping(path = "/register")
 	public ResponseEntity<?> createUser(@Valid @RequestBody CreateUserRequest userRequest, BindingResult result) {
 
-		if (userRepository.findByEmail(userRequest.email).isPresent()) {
+		if (userService.userExists(userRequest.email)) {
 			ErrorResponse err = new ErrorResponse("User already exists", 409);
 			return ResponseEntity.status(HttpStatus.CONFLICT).body(err);
 		}
-		User user = new User();
-		user.setEmail(userRequest.email);
-		user.setName(userRequest.name);
-		user.setPassword(passwordEncoder.encode(userRequest.password));
+		User user = userService.buildUserFromRequest(userRequest);
+		User savedUser = userService.saveUser(user);
 
-		User savedUser = userRepository.save(user);
 		if (savedUser == null || savedUser.getId() == null) {
 			ErrorResponse err = new ErrorResponse("An error has occured", 500);
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(err);
-		} else {
-			String token = jwtService.generateToken(user);
-			ConnectUserResponse response = new ConnectUserResponse(token);
-			return ResponseEntity.ok(response);
 		}
+
+		String token = jwtService.generateToken(user);
+		ConnectUserResponse response = new ConnectUserResponse(token);
+		return ResponseEntity.ok(response);
 	}
 
 	@Operation(summary = "Login user\", description = \"Authenticates the user and returns a JWT token.", description = "User is login.", requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(mediaType = "application/json", schema = @Schema(implementation = ConnectUserRequest.class), examples = @ExampleObject(value = "{\"email\": \"test@test.com\", \"password\": \"test!31\"}"))), responses = {
@@ -89,15 +79,14 @@ public class AuthController {
 	@SecurityRequirements({})
 	@PostMapping(path = "/login")
 	public ResponseEntity<?> connectUser(@RequestBody ConnectUserRequest userRequest) {
-		return userRepository.findByEmail(userRequest.email).map(user -> {
-			if (passwordEncoder.matches(userRequest.password, user.getPassword())) {
+		return userService.findByEmail(userRequest.email).map(user -> {
+			if (userService.checkPassword(userRequest.password, user.getPassword())) {
 				String token = jwtService.generateToken(user);
 				ConnectUserResponse response = new ConnectUserResponse(token);
 				return ResponseEntity.ok(response);
 			} else {
 				ErrorResponse err = new ErrorResponse("Invalid credentials", 401);
 				return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(err);
-
 			}
 		}).orElse(ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse("Invalid credentials", 401)));
 	}
@@ -112,7 +101,7 @@ public class AuthController {
 	@GetMapping(path = "/me")
 	public ResponseEntity<?> me(@AuthenticationPrincipal Jwt jwt) {
 		Long userId = jwt.getClaim("userId");
-		Optional<User> user = userRepository.findById(userId);
+		Optional<User> user = userService.findById(userId);
 		if (user.isPresent()) {
 			return ResponseEntity.ok(UserResponse.from(user.get()));
 		} else {

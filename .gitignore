@@ -34,3 +34,5 @@ build/
 
 # Token ou credentials
 .env
+
+/uploads/

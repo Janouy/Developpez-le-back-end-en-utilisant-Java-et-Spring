@@ -1,13 +1,9 @@
 package com.openclassrooms.chatopapi.controller;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -37,6 +33,7 @@ import com.openclassrooms.chatopapi.dto.Response;
 import com.openclassrooms.chatopapi.dto.UpdateRentalRequest;
 import com.openclassrooms.chatopapi.model.Rental;
 import com.openclassrooms.chatopapi.repository.RentalRepository;
+import com.openclassrooms.chatopapi.service.RentalService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -57,6 +54,8 @@ public class RentalsController {
 
 	@Autowired
 	private RentalRepository rentalRepository;
+	@Autowired
+	private RentalService rentalService;
 
 	@Operation(summary = "Add a new rental", description = "Creates a new rental.", security = {})
 	@RequestBody(required = true, content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE, schema = @Schema(implementation = CreatedRentalRequest.class)))
@@ -71,26 +70,17 @@ public class RentalsController {
 
 		try {
 			Long userId = jwt.getClaim("userId");
-			Rental rental = new Rental();
-			rental.setName(rentalRequest.getName());
-			rental.setSurface(rentalRequest.getSurface());
-			rental.setPrice(rentalRequest.getPrice());
-			rental.setDescription(rentalRequest.getDescription());
-			rental.setOwnerId(userId);
+			Rental rental = rentalService.buildRentalFromRequest(rentalRequest, userId);
 
 			MultipartFile picture = rentalRequest.getPicture();
 			if (picture != null && !picture.isEmpty()) {
-				String filename = UUID.randomUUID() + "_" + picture.getOriginalFilename();
-				Path filePath = Paths.get("uploads", filename);
-				Files.createDirectories(filePath.getParent());
-				Files.copy(picture.getInputStream(), filePath);
-				String publicUrl = "http://localhost:8080/api/uploads/" + filename;
+				String publicUrl = rentalService.savePicture(picture);
 				rental.setPicture(publicUrl);
 			} else {
 				return ResponseEntity.ok(Map.of("message", "Picture is mandatory"));
 			}
 
-			Rental saved = rentalRepository.save(rental);
+			Rental saved = rentalService.saveRental(rental);
 			if (saved.getId() == null) {
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error has occurred");
 			}
@@ -108,25 +98,26 @@ public class RentalsController {
 	@RequestBody(required = true, content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE, schema = @Schema(implementation = UpdateRentalRequest.class)))
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "Rental updated with success", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Response.class), examples = @ExampleObject("{\"message\": \"Rental updated !\"}"))),
+			@ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class), examples = @ExampleObject("{\"code\":401,\"message\":\"Unauthorized\"}"))),
 			@ApiResponse(responseCode = "400", description = "Bad request", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
 			@ApiResponse(responseCode = "404", description = "Rental not found", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
 			@ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))) })
 	@PutMapping(path = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<?> updateRental(@PathVariable Integer id, @Valid @ModelAttribute UpdateRentalRequest request,
-			BindingResult result) {
-		Optional<Rental> optional = rentalRepository.findById(id);
+			@AuthenticationPrincipal Jwt jwt, BindingResult result) {
+		Long userId = jwt.getClaim("userId");
+		Optional<Rental> optional = rentalService.findById(id);
+
 		if (optional.isEmpty()) {
-			ErrorResponse err = new ErrorResponse("Rental not found", 404);
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(err);
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Rental not found", 404));
 		}
 
 		Rental rental = optional.get();
-		rental.setName(request.getName());
-		rental.setSurface(request.getSurface());
-		rental.setPrice(request.getPrice());
-		rental.setDescription(request.getDescription());
+		if (!rentalService.isOwner(userId, rental)) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse("Unauthorized", 401));
+		}
 
-		rentalRepository.save(rental);
+		rentalService.updateRentalFromRequest(rental, request);
 
 		return ResponseEntity.ok(new Response("Rental updated !"));
 	}
@@ -151,10 +142,10 @@ public class RentalsController {
 			@ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class), examples = @ExampleObject("{\"code\":500,\"message\":\"An error has occured\"}"))) })
 	@GetMapping("/{id}")
 	public ResponseEntity<?> getRental(@PathVariable Integer id) {
-		Optional<Rental> optionalRental = rentalRepository.findById(id);
+		Optional<Rental> rental = rentalService.findById(id);
 
-		if (optionalRental.isPresent()) {
-			return ResponseEntity.ok(new RentalResponse(optionalRental.get()));
+		if (rental.isPresent()) {
+			return ResponseEntity.ok(new RentalResponse(rental.get()));
 		} else {
 			ErrorResponse err = new ErrorResponse("Rental not found", 404);
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(err);
