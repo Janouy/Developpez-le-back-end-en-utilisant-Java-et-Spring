@@ -4,11 +4,11 @@ ChâTop est une API REST développée avec Spring Boot pour une société de loc
 
 ##Fonctionnalités
 
-Création d'utilisateur
-Connexion sécurisée via JWT
-Visualisation des locations disponibles
-Consultation et modification d'une location
-Messagerie
+- Création d'utilisateur
+- Connexion sécurisée via JWT
+- Visualisation des locations disponibles
+- Consultation et modification d'une location
+- Messagerie
 
 ---
 
