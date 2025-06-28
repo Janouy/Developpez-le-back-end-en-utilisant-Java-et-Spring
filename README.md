@@ -34,11 +34,11 @@ ChâTop est une API REST développée avec Spring Boot pour une société de loc
 
 ## Configuration
 
-### Création d'une base de données SQL
+### Création d'une base de données MySQL
 
 Les tables se créeront automatiquement au lancement du projet
 
-### Exemple de .env à ajouter à src/main/ressources
+### Ajouter un .env sous src/main/ressources
 
 DB_HOST= host de la base de données
 DB_PORT= port de la base de données
