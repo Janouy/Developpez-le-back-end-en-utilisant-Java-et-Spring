@@ -13,18 +13,24 @@ import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotNull;
 
 @Entity
-public class User {
+public class Rental {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	@NotNull
-	@Column(length = 50)
+	@Column(length = 50, nullable = false)
 	private String name;
 	@NotNull
-	@Column(length = 50)
-	private String email;
+	private Integer surface;
 	@NotNull
-	private String password;
+	private Integer price;
+	@NotNull
+	private String picture;
+	@NotNull
+	@Column(columnDefinition = "TEXT")
+	private String description;
+	@NotNull
+	private Long owner_id;
 
 	@CreationTimestamp
 	@Column(updatable = false)
@@ -45,20 +51,44 @@ public class User {
 		this.name = name;
 	}
 
-	public String getEmail() {
-		return email;
+	public Integer getSurface() {
+		return surface;
 	}
 
-	public void setEmail(String email) {
-		this.email = email;
+	public void setSurface(Integer surface) {
+		this.surface = surface;
 	}
 
-	public String getPassword() {
-		return password;
+	public Integer getPrice() {
+		return price;
 	}
 
-	public void setPassword(String password) {
-		this.password = password;
+	public void setPrice(Integer price) {
+		this.price = price;
+	}
+
+	public String getPicture() {
+		return picture;
+	}
+
+	public void setPicture(String picture) {
+		this.picture = picture;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	public Long getOwnerId() {
+		return owner_id;
+	}
+
+	public void setOwnerId(Long owner_id) {
+		this.owner_id = owner_id;
 	}
 
 	public LocalDateTime getCreatedAt() {
