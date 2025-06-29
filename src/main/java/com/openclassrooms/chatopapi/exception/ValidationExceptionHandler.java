@@ -11,6 +11,12 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import jakarta.validation.ConstraintViolationException;
 
+/**
+ * Global exception handler for validation-related errors in REST controllers.
+ *
+ * This class uses @RestControllerAdvice to intercept and handle specific
+ * exceptions commonly thrown during request validation or JSON parsing.
+ */
 @RestControllerAdvice
 public class ValidationExceptionHandler {
 

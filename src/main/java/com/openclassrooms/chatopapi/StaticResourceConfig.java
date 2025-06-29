@@ -6,12 +6,17 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+/**
+ * Spring configuration class for serving static resources.
+ *
+ * This class implements {@link WebMvcConfigurer} to define a custom resource
+ * handler. It maps all requests to "/uploads/**" to the local "./uploads"
+ * directory.
+ */
 @Configuration
 public class StaticResourceConfig implements WebMvcConfigurer {
 
-	private final String uploadsPath = Paths
-			.get("C:/Users/jeann/Documents/workspace-spring-tools-for-eclipse-4.30.0.RELEASE/chatopApi/uploads").toUri()
-			.toString();
+	private final String uploadsPath = Paths.get("./uploads").toUri().toString();
 
 	@Override
 	public void addResourceHandlers(ResourceHandlerRegistry registry) {

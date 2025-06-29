@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -19,6 +20,9 @@ import com.openclassrooms.chatopapi.repository.RentalRepository;
 public class RentalService {
 
 	private final RentalRepository rentalRepository;
+
+	@Value("${app.base-url}")
+	private String appBaseUrl;
 
 	public RentalService(RentalRepository rentalRepository) {
 		this.rentalRepository = rentalRepository;
@@ -40,7 +44,7 @@ public class RentalService {
 		Path filePath = Paths.get("uploads", filename);
 		Files.createDirectories(filePath.getParent());
 		Files.copy(picture.getInputStream(), filePath);
-		return "http://localhost:8080/api/uploads/" + filename;
+		return appBaseUrl + "/api/uploads/" + filename;
 	}
 
 	public Rental saveRental(Rental rental) {

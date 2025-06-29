@@ -31,6 +31,9 @@ public class SpringSecurityConfig {
 	@Value("${JWT_KEY}")
 	private String jwtKey;
 
+	/**
+	 * Defines the security filter chain for public endpoints
+	 */
 	@Bean
 	@Order(1)
 	public SecurityFilterChain publicFilterChain(HttpSecurity http) throws Exception {
@@ -41,6 +44,10 @@ public class SpringSecurityConfig {
 				.authorizeHttpRequests(a -> a.anyRequest().permitAll()).build();
 	}
 
+	/**
+	 * Defines the security filter chain for protected endpoints. Uses JWT-based
+	 * authentication, and applies a custom authentication entry point.
+	 */
 	@Bean
 	@Order(2)
 	public SecurityFilterChain protectedFilterChain(HttpSecurity http, JwtService jwtService,
@@ -55,17 +62,26 @@ public class SpringSecurityConfig {
 				.build();
 	}
 
+	/**
+	 * Provides a JWT encoder using the configured secret key.
+	 */
 	@Bean
 	public JwtEncoder jwtEncoder() {
 		return new NimbusJwtEncoder(new ImmutableSecret<>(jwtKey.getBytes()));
 	}
 
+	/**
+	 * Provides a JWT decoder using the configured secret key
+	 */
 	@Bean
 	public JwtDecoder jwtDecoder() {
 		SecretKeySpec secretKey = new SecretKeySpec(jwtKey.getBytes(), "HmacSHA256");
 		return NimbusJwtDecoder.withSecretKey(secretKey).macAlgorithm(MacAlgorithm.HS256).build();
 	}
 
+	/**
+	 * Provides a BCrypt password encoder for secure password hashing.
+	 */
 	@Bean
 	public BCryptPasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
