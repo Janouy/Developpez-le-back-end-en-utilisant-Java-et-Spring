@@ -64,4 +64,6 @@ ou
        - ./mvnw clean install (clean install compile, teste et package l’application en .jar)
        - puis depuis le répertoire target : cd target puis java -jar chatopApi-0.0.1-SNAPSHOT.jar
 
+## Accès au Swagger
 
+http://localhost:8080/api/swagger-ui/index.html#
