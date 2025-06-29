@@ -4,7 +4,6 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -49,10 +48,6 @@ public class JwtService {
 		return this.jwtEncoder.encode(jwtEncoderParameters).getTokenValue();
 	}
 
-	public Jwt decodeToken(String token) {
-		return jwtDecoder.decode(token);
-	}
-
 	public Integer extractId(String token) {
 		return ((Number) jwtDecoder.decode(token).getClaim("userId")).intValue();
 	}
@@ -63,19 +58,6 @@ public class JwtService {
 		User user = userRepository.findById(userId).orElseThrow(() -> new UsernameNotFoundException("User not found"));
 		List<GrantedAuthority> authorities = Collections.emptyList();
 		return new UsernamePasswordAuthenticationToken(user, null, authorities);
-	}
-
-	public Optional<User> getUserFromAuthHeader(String authHeader) {
-		if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-			return Optional.empty();
-		}
-		try {
-			String token = authHeader.substring(7);
-			Integer userId = this.extractId(token);
-			return userRepository.findById(userId);
-		} catch (JwtException | IllegalArgumentException e) {
-			return Optional.empty();
-		}
 	}
 
 	public boolean validateToken(String token) {
