@@ -48,10 +48,6 @@ public class JwtService {
 		return this.jwtEncoder.encode(jwtEncoderParameters).getTokenValue();
 	}
 
-	public Integer extractId(String token) {
-		return ((Number) jwtDecoder.decode(token).getClaim("userId")).intValue();
-	}
-
 	public Authentication getAuthentication(String token) {
 		Jwt jwt = jwtDecoder.decode(token);
 		Integer userId = ((Number) jwt.getClaim("userId")).intValue();
