@@ -27,14 +27,14 @@ ChâTop est une API REST développée avec Spring Boot pour une société de loc
 ### Depuis la ligne de commande
 
 1. Clonez le dépôt :
-   git clone https://github.com/Janouy/Developpez-le-back-end-en-utilisant-Java-et-Spring.git
-   cd chatopApi
+   - git clone https://github.com/Janouy/Developpez-le-back-end-en-utilisant-Java-et-Spring.git
+   - cd chatopApi
 
 ---
 
 ## Configuration
 
-### Création d'une base de données MySQL
+### Mise à jour de la base de données MySQL
 
 Les tables se créeront automatiquement au lancement du projet
 
