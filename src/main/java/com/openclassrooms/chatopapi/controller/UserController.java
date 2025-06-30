@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.openclassrooms.chatopapi.dto.ConnectUserResponse;
 import com.openclassrooms.chatopapi.dto.ErrorResponse;
 import com.openclassrooms.chatopapi.dto.UserResponse;
 import com.openclassrooms.chatopapi.model.User;
@@ -35,7 +34,7 @@ public class UserController {
 	private UserService userService;
 
 	@Operation(summary = "Get authenticated user by id", description = "Returns the authenticated user's information", security = @SecurityRequirement(name = "bearerAuth"), responses = {
-			@ApiResponse(responseCode = "200", description = "User info", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ConnectUserResponse.class))),
+			@ApiResponse(responseCode = "200", description = "User info", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponse.class))),
 			@ApiResponse(responseCode = "400", description = "Bad request"),
 			@ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class), examples = @ExampleObject(value = "{ \"code\": 401, \"message\": \"Unauthorized\" }"))),
 			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class), examples = @ExampleObject(value = "{ \"code\": 404, \"message\": \"User not found\" }"))),

@@ -10,10 +10,10 @@ public class UserResponse {
 	@Schema(description = "Unique identifier of the user", example = "1")
 	public Long id;
 
-	@Schema(description = "Full name of the user", example = "John Doe")
+	@Schema(description = "Full name of the user", example = "Owner Name")
 	public String name;
 
-	@Schema(description = "Email address of the user", example = "john.doe@example.com")
+	@Schema(description = "Email address of the user", example = "test@test.com")
 	public String email;
 
 	@Schema(description = "Timestamp when the user was created (ISO-8601 format)", example = "2022-02-02T14:30:00")
